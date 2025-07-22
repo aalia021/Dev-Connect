@@ -9,7 +9,7 @@ const app = express();
 // CORS
 app.use(
   cors({
-    origin: ["http://localhost:5173", process.env.FRONTEND_URL],
+    origin: "https://dev-connect-frontend-ten.vercel.app",
     credentials: true,
   })
 );

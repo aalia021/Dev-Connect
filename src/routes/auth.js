@@ -70,14 +70,21 @@ authRouter.post("/login", async (req, res) => {
 });
 
 authRouter.post("/logout", async (req, res) => {
-  res.cookie("token", token, {
-    httpOnly: true,
-    secure: true,
-    sameSite: "None",
-    expires: new Date(Date.now() + 8 * 3600000),
-  });
+  try {
+    console.log("Logout route hit");
+    console.log("Incoming cookies:", req.cookies);
 
-  res.send("Logout Successful!!");
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: true, // ✅ Render is HTTPS, so this is required
+      sameSite: "None", // ✅ Also required for cross-origin Vercel
+    });
+
+    res.status(200).send("Logout Successful");
+  } catch (err) {
+    console.error("Logout Error:", err);
+    res.status(500).send("Logout failed: " + err.message);
+  }
 });
 
 module.exports = authRouter;
