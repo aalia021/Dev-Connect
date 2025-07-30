@@ -1,4 +1,5 @@
 const express = require("express");
+const sendEmail = require("../utils/sendEmail");
 const requestRouter = express.Router();
 
 const { userAuth } = require("../middlewares/auth");
@@ -55,6 +56,18 @@ requestRouter.post(
 
       const data = await newRequest.save();
 
+      if (status === "interested") {
+        console.log("Sending email to:", toUser.emailId);
+        await sendEmail(
+          toUser.emailId,
+          `👋 New Connection Request from ${req.user.firstName}`,
+          `<p>Hi ${toUser.firstName},</p>
+     <p><strong>${req.user.firstName} ${req.user.lastName}</strong> just sent you a connection request on <strong>DevConnect</strong>.</p>
+     <p><a href="https://dev-connect-frontend.vercel.app/requests">👉 View Your Requests</a></p>
+     <br>
+     <p>Regards,<br>DevConnect Team</p>`
+        );
+      }
       res.status(201).json({
         message: "Connection request sent successfully",
         data,
@@ -87,11 +100,9 @@ requestRouter.post(
       });
 
       if (!connectionRequest) {
-        return res
-          .status(404)
-          .json({
-            message: "Connection request not found or already reviewed",
-          });
+        return res.status(404).json({
+          message: "Connection request not found or already reviewed",
+        });
       }
 
       connectionRequest.status = status;

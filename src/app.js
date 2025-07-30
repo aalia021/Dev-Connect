@@ -1,8 +1,10 @@
 require("dotenv").config();
+require("./utils/cronjob");
 const express = require("express");
 const connectDB = require("./config/database");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
+const http = require("http");
 
 const app = express();
 
@@ -13,6 +15,8 @@ app.use(
     credentials: true,
   })
 );
+const stripeWebhookRouter = require("./routes/stripeWebhook");
+app.use("/", stripeWebhookRouter);
 
 app.use(express.json());
 app.use(cookieParser());
@@ -23,10 +27,20 @@ const profileRouter = require("./routes/profile");
 const requestRouter = require("./routes/requests");
 const userRouter = require("./routes/user");
 
+const paymentRoutes = require("./routes/payment");
+const initializeSocket = require("./utils/socket");
+const chatRouter = require("./routes/chat");
+
 app.use("/", authRouter);
 app.use("/", profileRouter);
 app.use("/", requestRouter);
 app.use("/", userRouter);
+
+app.use("/", paymentRoutes);
+app.use("/", chatRouter);
+
+const server = http.createServer(app);
+initializeSocket(server);
 
 // Connect DB and Start Server
 connectDB()
@@ -34,7 +48,7 @@ connectDB()
     console.log("Database connection established ...");
 
     const PORT = process.env.PORT;
-    app.listen(PORT, () => {
+    server.listen(PORT, () => {
       console.log(`Server is successfully listening on port ${PORT}`);
     });
   })
